@@ -1,0 +1,462 @@
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+<style>
+	*, *:before, *:after {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  color: #384047;
+}
+
+form {
+  max-width: 300px;
+  margin: 10px auto;
+  padding: 10px 20px;
+  background: #f4f7f8;
+  border-radius: 8px;
+}
+
+h1 {
+  margin: 0 0 30px 0;
+  text-align: center;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="date"],
+input[type="datetime"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="time"],
+input[type="url"],
+textarea,
+select {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  font-size: 16px;
+  height: auto;
+  margin: 0;
+  outline: 0;
+  padding: 15px;
+  width: 100%;
+  background-color: #e8eeef;
+  color: #8a97a0;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+  margin-bottom: 30px;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+  margin: 0 4px 8px 0;
+}
+
+select {
+  padding: 6px;
+  height: 32px;
+  border-radius: 2px;
+}
+
+button {
+  padding: 19px 39px 18px 39px;
+  color: #FFF;
+  background-color: #4bc970;
+  font-size: 18px;
+  text-align: center;
+  font-style: normal;
+  border-radius: 5px;
+  width: 100%;
+  border: 1px solid #3ac162;
+  border-width: 1px 1px 3px;
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.1) inset;
+  margin-bottom: 10px;
+}
+
+fieldset {
+  margin-bottom: 30px;
+  border: none;
+}
+
+legend {
+  font-size: 1.4em;
+  margin-bottom: 10px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+label.light {
+  font-weight: 300;
+  display: inline;
+}
+
+.number {
+  background-color: #5fcf80;
+  color: #fff;
+  height: 30px;
+  width: 30px;
+  display: inline-block;
+  font-size: 0.8em;
+  margin-right: 4px;
+  line-height: 30px;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.2);
+  border-radius: 100%;
+}
+
+@media screen and (min-width: 480px) {
+
+  form {
+    max-width: 800px;
+  }
+
+}
+</style>
+
+</head>
+<body>
+
+
+<form id="fromWrapper" method="get" action="#"></form>
+
+
+	
+<script>
+
+		/**
+
+		CONFIGURATION
+	
+		**/	
+
+		var templateId = 'hybris_v1';
+		var projectId = 'SLX';
+		var projects = {
+				SLX: {
+					defaultValues : {
+						svntag : 'SLXPS_01.00.00RC0',
+						email : ['bartp@euronics.be' ,'steven.coymans@osudio.com', 'QA@osudio.com' , 'Jeroen.Remans@osudio.com', 'kris.g@osudio.com'],
+						exec_impex : ['See attached impexes'],
+						exec_scripts : ['See attached scripts'],
+						solr_index : ['contentIndex', 'pointOfServiceIndex', 'productIndex'],
+						sync_catalogs : ['selexionContentCatalog','selexionEuronicsContentCatalog','selexionRetailerContentCatalog'],
+						inform_qa : 'Let JohanP/Koen/Steven know to send a mail with a list of resolved tickets ...'
+					},
+					descriptions : {
+						svntag : "Release Tag"
+					}
+				}};
+			
+		var RCM_templates = {
+			hybris_v1 : {
+				fieldsets : [
+						{
+							id : 'preperation',
+							name : 'Preparation release',
+							fields : [
+								{
+									id : 'email',
+									name : 'Send email to customer',
+									type : 'checkbox',
+									repeatAfter : 'inform_qa',
+									hiddenFieldType :  'textarea'												
+								}, 
+								{
+									id : 'maintenancepage',
+									name : 'Enable maintenace page',
+									repeatAfter : 'clear_webcache',
+									repeatName : 'Disable maintenace page',
+									type : 'checkbox'												
+								},
+								{
+									id : 'svntag',
+									name : 'Release Tag',
+									type : 'text'
+								}
+							]
+						}, 
+						{
+							id : 'hybrissteps',
+							name : 'Hybris deployment steps',
+							fields : [{
+									id : 'hac',
+									name : 'Hybris Admin Console',
+									grouped_fields : [
+										{
+											id : 'urs',
+											name : 'Update Running system',
+											type : 'checkbox'
+										}, 
+										{
+											id : 'clear_hmc',
+											name : 'Clear hmc',
+											description : 'Clear hybris Management Console configuration from the database',
+											type : 'checkbox'											
+										}, 
+										{
+											id : 'essential_data',
+											name : 'Recommended Essential Data',
+											type : 'checkbox'											
+										}, 
+										{
+											id : 'localize_types',
+											name : 'Localize Types',
+											type : 'checkbox'											
+										}
+									]
+								},
+								{
+									id : 'restartAppservers',
+									name : 'Restart all App servers',
+									type : 'checkbox'											
+								},
+								{
+									id : 'exec_impex',
+									name : 'Execute impexes',
+									description : 'Custom Import Impexes (make sure code execution is enabled)',
+									type : 'checkbox',
+									hiddenFieldType :  'textarea'	
+								}, 
+								{
+									id : 'exec_scripts',
+									name : 'Execute Scripts (Groovy)',
+									description : 'Custom groovy script (make sure commit is enabled)',
+									type : 'checkbox',
+									hiddenFieldType :  'textarea'											
+								}, 
+								{
+									id : 'sync_catalogs',
+									name : 'Sync catalogs versions',
+									type : 'checkbox',
+									hiddenFieldType :  'select'												
+								}, 
+								{
+									id : 'solr_index',
+									name : 'Index solr',
+									type : 'checkbox',
+									hiddenFieldType :  'select'												
+								}, 
+								{
+									id : 'clear_webcache',
+									name : 'Clear webcache',
+									type : 'checkbox'											
+								}, 
+								{
+									id : 'run_jobs',
+									name : 'Run jobs',
+									type : 'checkbox'											
+								}
+							]
+						},
+						{
+							id : 'qa',
+							name : 'QA',
+							fields : [
+								{
+									id : 'inform_qa',
+									name : 'Inform QA',
+									type : 'checkbox',
+									defaultValue : true,
+									hiddenFieldType :  'textarea'	
+								}, 
+								{
+									id : 'sanity_check',
+									name : 'Sanity check',
+									type : 'checkbox',
+									defaultValue : true,
+									hiddenFieldType :  'textarea'											
+								}
+							]
+						},
+			
+				]
+			}
+		}
+			
+
+		/**
+
+		GENERATE FORM BASED ON JSON
+	
+		**/	
+			
+		$('#fromWrapper').append("<h1>Release information</h1>");
+		$.each(RCM_templates[templateId].fieldsets, function(index, fieldset) {
+			
+			var fieldsetHtml = '<fieldset>';
+			fieldsetHtml += '<legend><span class="number">' + (index + 1) + '</span>' + fieldset.name + '</legend>';
+			 
+			$.each(fieldset.fields, function(index, groupedField) {
+				var fields = groupedField.grouped_fields;
+				if (fields == null) fields = [groupedField];
+					
+				if (groupedField.grouped_fields != null) {
+					fieldsetHtml += '<Strong>' + groupedField.name + '</Strong><br />';
+				}
+				$.each(fields, function(index, field) {
+					var defaultValue = projects[projectId].defaultValues[field.id];
+					console.log(projects[projectId][field.id]);
+					defaultValue = defaultValue == null ? '' : defaultValue;
+				
+					if (field.type == 'text') {
+						fieldsetHtml += '<label for="' + field.id + '">' + field.name + ' :</label>';
+						fieldsetHtml += '<input type="' + field.type + '" id="' + field.id + '" name="' + field.id + '" value="' + defaultValue + '"></input>';
+					} else if (field.type == 'checkbox') {
+						var checked = "";
+						if (field.defaultValue == true) {
+							checked = "checked";
+						}
+						fieldsetHtml += '<input type="' + field.type + '" id="' + field.id + '" name="' + field.id + '" ' + checked + ' value="Y"></input>';
+						fieldsetHtml += '<label class="light" for="' + field.id + '">' + field.name + '</label><br />';	   
+					} else if (field.type == 'textarea') {
+						fieldsetHtml += '<label for="' + field.id + '">' + field.name + ' :</label>';
+						fieldsetHtml += '<textarea id="' + field.id + '" name="' + field.id + '"></textarea>';
+					}
+					
+					if (field.hiddenFieldType != '') {
+						if (field.hiddenFieldType == 'textarea') {
+							fieldsetHtml += '<textarea id="' + field.id + '_content" name="' + field.id + '_content">' + defaultValue + '</textarea>';
+						} else if (field.hiddenFieldType == 'select') {
+							fieldsetHtml += '<select multiple id="' + field.id + '_content" name="' + field.id + '_content"  style="height:120px">';
+							if (defaultValue != '') {
+							console.warn(defaultValue);
+								$.each(defaultValue, function(val, defaultVal) {
+									fieldsetHtml +='<option value="' + defaultVal + '">' + defaultVal + '</option>';
+								});
+							}
+							fieldsetHtml += '</select>';
+						} else if (field.hiddenFieldType == 'text') {
+							fieldsetHtml += '<input type="text" id="' + field.id + '_content" name="' + field.id + '_content">' + defaultValue + '</input>';
+						}
+					}
+				});
+				if (groupedField.grouped_fields != null) {
+					fieldsetHtml += '<br /><br />';
+				}
+			});
+
+			fieldsetHtml += '</fieldset>';
+			$('#fromWrapper').append(fieldsetHtml);
+		});
+		$('#fromWrapper').append('<button type="button" id="generateButton">Generate</button>');
+		$('#fromWrapper').append('<fieldset><textarea name="result" id="result" style="height:250px" ></textarea></fieldset>');
+				
+
+		// Hide collapsable fields
+		$.each(RCM_templates.hybris_v1.fieldsets, function(index, fieldset) {
+			$.each(fieldset.fields, function(index, field) {
+				var fieldId = field.id; 
+				if (!$('#' + fieldId).is(':checked')) {
+					$('#' + fieldId + "_content").hide();
+				}				
+				$('#' + fieldId).on( "click", function() {
+					$('#' + fieldId + "_content").toggle();
+				});
+			});
+		});
+		
+		
+		
+	/**
+
+	GENERATE JIRA FORMATTED FILE
+	
+	**/	
+  
+	$( "#generateButton" ).on( "click", function() {
+		var res = "";
+		var toBeRepeatedFields = [];
+		$.each(RCM_templates[templateId].fieldsets, function(index, fieldset) {
+		
+			res += "h4. " + fieldset.name + "\n";
+			$.each(fieldset.fields, function(index, groupedField) {
+				var prefix = '# ';
+				var fields = groupedField.grouped_fields;
+				if (fields == null) fields = [groupedField];
+					
+				if (groupedField.grouped_fields != null) {
+					res += prefix + groupedField.name + "\n";
+					prefix = '#* ';
+				}
+				
+				$.each(fields, function(index, field) {
+					res += appendField(prefix, field, false);
+					$.each(toBeRepeatedFields, function(index, repeatField) {
+						if (repeatField.repeatAfter == field.id) {
+							res += appendField(prefix, repeatField, true);
+						}
+					});
+					if (field.repeatAfter != null) {
+						toBeRepeatedFields.push(field);
+					}
+				});
+			});
+			res += "\n";
+		});
+	
+		$('#result').html(res);
+	});
+	
+	
+	function appendField(prefix, field, repeat) {
+		var res = "";
+		var description = null;
+		if (repeat) {
+			description = field.repeatName;
+		}
+		if (description == null) description = projects[projectId].descriptions[field.id];
+		if (description == null) description = field.description;
+		if (description == null) description = field.name;
+		
+		res += prefix + description + " : " + translateCheckBox(field.id) + "\n";
+		if (field.hiddenFieldType != null) {
+			res += translateCheckBoxContent(field.id);
+		}
+		return res;
+	}
+	
+	
+	function isChecked(id) {
+		return $('#' + id).is(':checked');
+	}
+	
+	function translateCheckBox(id) {
+		return translateCheckBox(id, false);
+	}
+	
+	function translateCheckBox(id, falseMessage) {
+		if ($('#' + id).is(':checked')) {
+			return '(/)';
+		}
+		if (falseMessage) {
+			return '';
+		}
+		return '(x)';
+	}
+	
+	function translateCheckBoxContent(id) {
+		if ($('#' + id).is(':checked')) {
+			if ($('#' + id + "_content").is("select")) {
+				var result = "";
+				$.each($('#' + id + '_content option:selected'), function(val, selectedValue) {
+					result += "#* " + $(selectedValue).html() +  " : (/)\n";
+				});
+				return result;
+			} else {
+				return "#* " + $('#' + id + "_content").val() + "\n";
+			}
+		}
+		return '';
+	}
+</script>
+	
+</body>
+</html>
